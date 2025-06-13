@@ -304,6 +304,17 @@ app.post('/api/webhook/trade', async (req, res) => {
     }
 });
 
+// Log ALL incoming requests for debugging
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        console.log(`🔍 ${req.method} ${req.path}`, req.body);
+    }
+    next();
+});
+
+
+
+
 // === DEBUG & HEALTH ENDPOINTS ===
 
 // Debug endpoint to see what data is being sent
