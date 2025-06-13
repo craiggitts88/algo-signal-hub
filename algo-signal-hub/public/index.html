@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algo Signal Hub Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .signals-list { margin-top: 30px; }
+        .signal-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Algo Signal Hub Dashboard</h1>
+    
+    <!-- Signal Form -->
+    <div class="card">
+        <h2>📊 Create New Signal</h2>
+        <form id="signalForm">
+            <div class="form-group">
+                <label for="symbol">Symbol:</label>
+                <input type="text" id="symbol" placeholder="e.g., EURUSD" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="action">Action:</label>
+                <select id="action" required>
+                    <option value="">Select Action</option>
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="entry_price">Entry Price:</label>
+                <input type="number" id="entry_price" step="0.00001" placeholder="1.0850" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="stop_loss">Stop Loss:</label>
+                <input type="number" id="stop_loss" step="0.00001" placeholder="1.0800">
+            </div>
+            
+            <div class="form-group">
+                <label for="take_profit">Take Profit:</label>
+                <input type="number" id="take_profit" step="0.00001" placeholder="1.0900">
+            </div>
+            
+            <div class="form-group">
+                <label for="volume">Volume:</label>
+                <input type="number" id="volume" step="0.01" placeholder="0.1" required>
+            </div>
+            
+            <button type="submit">🎯 Create Signal</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+    
+    <!-- Signals List -->
+    <div class="signals-list">
+        <h2>📈 Recent Signals</h2>
+        <button onclick="loadSignals()">🔄 Refresh Signals</button>
+        <div id="signalsList"></div>
+    </div>
+
+    <script>
+        // Create Signal
+        document.getElementById('signalForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                symbol: document.getElementById('symbol').value,
+                action: document.getElementById('action').value,
+                entry_price: parseFloat(document.getElementById('entry_price').value),
+                stop_loss: parseFloat(document.getElementById('stop_loss').value) || null,
+                take_profit: parseFloat(document.getElementById('take_profit').value) || null,
+                volume: parseFloat(document.getElementById('volume').value)
+            };
+            
+            try {
+                const response = await fetch('/api/signals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById('result');
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `<div class="result success">✅ Signal created successfully!</div>`;
+                    document.getElementById('signalForm').reset();
+                    loadSignals(); // Refresh the list
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ Error: ${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<div class="result error">❌ Network error: ${error.message}</div>`;
+            }
+        });
+        
+        // Load Signals
+        async function loadSignals() {
+            try {
+                const response = await fetch('/api/signals');
+                const result = await response.json();
+                const signalsDiv = document.getElementById('signalsList');
+                
+                if (result.success && result.data.length > 0) {
+                    signalsDiv.innerHTML = result.data.map(signal => `
+                        <div class="signal-card">
+                            <strong>${signal.symbol}</strong> - ${signal.action}
+                            <br>Entry: ${signal.entry_price} | Volume: ${signal.volume}
+                            <br>SL: ${signal.stop_loss || 'N/A'} | TP: ${signal.take_profit || 'N/A'}
+                            <br><small>Created: ${new Date(signal.created_at).toLocaleString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    signalsDiv.innerHTML = '<p>No signals found.</p>';
+                }
+            } catch (error) {
+                document.getElementById('signalsList').innerHTML = `<p>Error loading signals: ${error.message}</p>`;
+            }
+        }
+        
+        // Load signals on page load
+        loadSignals();
+    </script>
+</body>
+</html>
