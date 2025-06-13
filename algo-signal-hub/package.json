@@ -1,13 +1,22 @@
 {
-  "name": "trading-signals-api",
-  "version": "2.0.0",
+  "name": "algo-signal-hub",
+  "version": "1.0.0",
+  "description": "Copy trading signal aggregation dashboard",
+  "main": "index.js",
   "scripts": {
-    "start": "node index.js" 
+    "start": "node index.js",
+    "dev": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
     "cors": "^2.8.5",
-    "pg": "^8.11.0",
-    "pg-hstore": "^2.3.4"
-  }
+    "node-cron": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["copy-trading", "signals", "forex", "demo-accounts"],
+  "author": "Your Name",
+  "license": "MIT"
 }
